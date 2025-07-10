@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Real-time GPU Monitor</title>
+    <style>
+        body { font-family: sans-serif; }
+        .gpu-card { border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; }
+        .error { color: red; }
+        .gauge-container {
+            width: 150px;
+            height: 80px;
+            position: relative;
+        }
+        .gauge-base {
+            width: 100%;
+            height: 30px;
+            background-color: #eee;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .gauge-fill {
+            height: 100%;
+            background-color: #4CAF50; /* Green */
+            border-radius: 15px;
+            width: 0%; /* Initial width */
+        }
+        .gauge-text {
+            position: absolute;
+            top: 35px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+        }
+    </style>
+    <script>
+        function updateGPUInfo() {
+            fetch('/')
+            .then(response => response.text())
+            .then(data => {
+                document.body.innerHTML = data;
+            });
+        }
+
+        setInterval(updateGPUInfo, 1000); // Update every 1 second
+    </script>
+</head>
+<body>
+    <h1>Real-time GPU Monitor</h1>
+    {% if gpus %}
+        {% for gpu in gpus %}
+            {% if 'error' in gpu %}
+                <div class="gpu-card error">Error: {{ gpu.error }}</div>
+            {% else %}
+                <div class="gpu-card">
+                    <h2>GPU {{ gpu.id }}: {{ gpu.name }}</h2>
+                    <p><strong>Load:</strong> {{ gpu.load_percent }}%</p>
+                    <div class="gauge-container">
+                        <div class="gauge-base">
+                            <div class="gauge-fill" style="width: {{ gpu.load_raw }}%;"></div>
+                        </div>
+                        <div class="gauge-text">{{ gpu.load_percent }}%</div>
+                    </div>
+                    <p><strong>Memory Used:</strong> {{ gpu.memory_used }} MB</p>
+                    <p><strong>Memory Total:</strong> {{ gpu.memory_total }} MB</p>
+                    <p><strong>Memory Utilization:</strong> {{ gpu.memory_util_percent }}%</p>
+                    <div class="gauge-container">
+                        <div class="gauge-base">
+                            <div class="gauge-fill" style="width: {{ gpu.memory_util_raw }}%;"></div>
+                        </div>
+                        <div class="gauge-text">{{ gpu.memory_util_percent }}%</div>
+                    </div>
+                    <p><strong>Temperature:</strong> {{ gpu.temperature }} °C</p>
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <p>No GPU information available.</p>
+    {% endif %}
+</body>
+</html>
